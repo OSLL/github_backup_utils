@@ -3,7 +3,7 @@
 import argparse
 from github import Github
 from json import dump
-
+import csv
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -30,18 +30,25 @@ def get_orgs(filename):
 
 
 def get_repo_info(repo):
-    return {
-        'id': repo.id
-    }
+    return [
+        str(repo.name),
+        str(repo.id)
+    ]
 
 
 if __name__ == '__main__':
     args = parse_args()
     g = Github(get_token(args.token))
     for org_name in get_orgs(args.orgs):
-        print('get {}'.format(org_name))
+        print('get org [{}]'.format(org_name))
         org = g.get_organization(org_name)
-
+        org_repos = org.get_repos()
+        with open(f'{org_name}.csv', 'w') as file:
+            writer = csv.writer(file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for repo in org_repos:
+                info = get_repo_info(repo)
+                writer.writerow(info)
+        #dump(issues_info, file, ensure_ascii=False, indent=3)
         # issues = repo.get_issues(state='all')
         # issues_info = []
         # print('get issues')

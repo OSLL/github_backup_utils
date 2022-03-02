@@ -67,11 +67,3 @@ if __name__ == '__main__':
                 print(f"Handling repo [{repo.name}]")
                 info = get_repo_info(repo, org_name, args.github_nickname)
                 writer.writerow(info)
-        #dump(issues_info, file, ensure_ascii=False, indent=3)
-        # issues = repo.get_issues(state='all')
-        # issues_info = []
-        # print('get issues')
-        # for issue in issues:
-        #     issues_info.append(get_issue_info(issue))
-        # with open('{}.issues.json'.format(reponame.replace('/', '--')), 'w') as file:
-        #     dump(issues_info, file, ensure_ascii=False, indent=3)

@@ -19,7 +19,7 @@ def parse_args():
 
 def get_token(filename):
     with open(filename) as file:
-        token = file.readline()
+        token = file.readline().strip()
     return token
 
 

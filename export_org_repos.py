@@ -39,7 +39,6 @@ def get_writer_rows():
 
 def get_repo_info(repo, org_name="", username=""):
     users = ""
-    users = str(repo.permissions)
     for u in repo.get_collaborators():
 #        params = {
 #            "accept": "application/vnd.github.v3+json"

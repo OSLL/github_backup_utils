@@ -5,7 +5,7 @@ from github import Github
 import json
 import csv
 import requests
-
+from time import sleep
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -43,6 +43,7 @@ def get_repo_info(repo, org_name="", username=""):
         params = {
             "accept": "application/vnd.github.v3+json"
         }
+        sleep(1)
         res = requests.get(f"https://api.github.com/repos/{org_name}/{repo.name}/collaborators/{u.login}/permission", params=params, auth=(username, args.token))
         users += f"{u.login}:{json.loads(res.text)['permission']},"
     return [
@@ -65,5 +66,6 @@ if __name__ == '__main__':
             writer.writerow(get_writer_rows())
             for repo in org_repos:
                 print(f"Handling repo [{repo.name}]")
+                sleep(10)
                 info = get_repo_info(repo, org_name, args.github_nickname)
                 writer.writerow(info)

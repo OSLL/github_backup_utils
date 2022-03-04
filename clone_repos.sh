@@ -9,21 +9,23 @@ OLDIFS=$IFS
 IFS=';'
 
 if [ ! -d "$ORG" ]; then
-  mkdir $ORG
+  mkdir -p $ORG
 fi
 
-[ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
-while read name priv issues perms
-do
-	LINK="git@github.com:$ORG/$name.git"
-    if [ ! -d "$name" ]; then
-	    git clone $LINK
-    else
-      echo "REPO $name EXISTS. FETCHING."
-      cd $name
-      git fetch
-      cd ..
-    fi
-	echo "__________________________________________"
-done < $INPUT
+[ ! -f $INPUT ] && {
+  echo "$INPUT file not found"
+  exit 99
+}
+while read name priv issues perms; do
+  LINK="git@github.com:$ORG/$name.git"
+  if [ ! -d "$ORG/$name" ]; then
+    git clone $LINK $ORG/$name
+  else
+    echo "REPO $name EXISTS. FETCHING."
+    cd $ORG/$name
+    git fetch -a
+    cd ..
+  fi
+  echo "__________________________________________"
+done <$INPUT
 IFS=$OLDIFS

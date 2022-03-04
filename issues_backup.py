@@ -21,6 +21,12 @@ def parse_args():
     return results
 
 
+def get_token(filename):
+    with open(filename) as file:
+        token = file.readline().strip()
+    return token
+
+
 def get_repos(filename):
     repos = []
     with open(filename) as file:
@@ -47,7 +53,7 @@ def get_issue_info(issue):
 
 if __name__ == '__main__':
     args = parse_args()
-    g = Github(args.token)
+    g = Github(get_token(args.token))
     org_name = args.repos.split('.')[0]
     if not path.exists(org_name):
         os.mkdir(org_name)

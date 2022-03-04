@@ -40,12 +40,14 @@ def get_writer_rows():
 def get_repo_info(repo, org_name="", username=""):
     users = ""
     for u in repo.get_collaborators():
-        params = {
-            "accept": "application/vnd.github.v3+json"
-        }
-        sleep(1)
-        res = requests.get(f"https://api.github.com/repos/{org_name}/{repo.name}/collaborators/{u.login}/permission", params=params, auth=(username, args.token))
-        users += f"{u.login}:{json.loads(res.text)['permission']},"
+#        params = {
+#            "accept": "application/vnd.github.v3+json"
+#        }
+#        sleep(1)
+#        res = requests.get(f"https://api.github.com/repos/{org_name}/{repo.name}/collaborators/{u.login}/permission", params=params, auth=(username, args.token))
+        
+        users += f"{u.login}:{str(u.permissions)},"
+    print(users)
     return [
         str(repo.name),
         str(repo.private),

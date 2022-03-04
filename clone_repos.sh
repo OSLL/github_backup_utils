@@ -16,7 +16,12 @@ fi
   echo "$INPUT file not found"
   exit 99
 }
+i=1
 while read name priv issues perms; do
+  if [ "$i" == '1' ]; then
+    i=0
+    continue # skip column's name
+  fi
   LINK="git@github.com:$ORG/$name.git"
   if [ ! -d "$ORG/$name" ]; then
     git clone $LINK $ORG/$name

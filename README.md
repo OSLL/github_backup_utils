@@ -1,5 +1,11 @@
 # Github backup utils
 
+## Goal
+
+Simple set of scripts for backuping github organization repos with access permissions (including private repos) and issues.
+
+## Usage
+
 Usage (launch scripts in order, instructions u can see in comments in scripts):
 
 1. export_org_repos.py (get organization's repositories list)

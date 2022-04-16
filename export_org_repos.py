@@ -47,7 +47,7 @@ def get_repo_info(repo, org_name="", username=""):
 #        res = requests.get(f"https://api.github.com/repos/{org_name}/{repo.name}/collaborators/{u.login}/permission", params=params, auth=(username, args.token))
         
         users += f"{u.login}:{str(u.permissions)},"
-    print(users)
+#    print(users)
     return [
         str(repo.name),
         str(repo.private),
@@ -68,6 +68,6 @@ if __name__ == '__main__':
             writer.writerow(get_writer_rows())
             for repo in org_repos:
                 print(f"Handling repo [{repo.name}]")
-                sleep(10)
+#                sleep(10)
                 info = get_repo_info(repo, org_name, args.github_nickname)
                 writer.writerow(info)

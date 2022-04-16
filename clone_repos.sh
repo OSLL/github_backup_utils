@@ -12,6 +12,8 @@ if [ ! -d "$ORG" ]; then
   mkdir -p $ORG
 fi
 
+dir=`pwd`
+
 [ ! -f $INPUT ] && {
   echo "$INPUT file not found"
   exit 99
@@ -26,10 +28,10 @@ while read name priv issues perms; do
   if [ ! -d "$ORG/$name" ]; then
     git clone $LINK $ORG/$name
   else
-    echo "REPO $name EXISTS. FETCHING."
+    echo "REPO $name (`pwd`/$ORG/$name)  EXISTS. FETCHING."
     cd $ORG/$name
     git fetch -a
-    cd ..
+    cd $dir
   fi
   echo "__________________________________________"
 done <$INPUT

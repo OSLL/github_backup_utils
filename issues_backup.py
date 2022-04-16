@@ -7,6 +7,7 @@ import argparse
 import csv
 from json import dump
 import os.path as path
+import glob
 
 
 def parse_args():
@@ -17,8 +18,18 @@ def parse_args():
     parser.add_argument('--repos', type=str, required=True,
                         dest='repos',
                         help='file w/repos list')
+    parser.add_argument('--force', action='store_true', required=False,
+                        dest='force',
+                        help='force rewrite issues')
     results = parser.parse_args()
     return results
+
+
+def get_checked_repos(path):
+    res = []
+    for file in glob.glob(glob.escape(path) + "/*.issues.json"):
+        res.append(os.path.basename(file).split(".")[0])
+    return res
 
 
 def get_token(filename):
@@ -55,16 +66,22 @@ if __name__ == '__main__':
     args = parse_args()
     g = Github(get_token(args.token))
     org_name = args.repos.split('.')[0]
+    checked_repos = []
     if not path.exists(org_name):
         os.mkdir(org_name)
+    else:
+        checked_repos = get_checked_repos(org_name)
     for reponame in get_repos(args.repos):
-        full_reponame = f"{org_name}/{reponame}"
-        print('get {}'.format(full_reponame))
-        repo = g.get_repo(full_reponame)
-        issues = repo.get_issues(state='all')
-        issues_info = []
-        print('get issues')
-        for issue in issues:
-            issues_info.append(get_issue_info(issue))
-        with open('{}/{}.issues.json'.format(org_name, reponame.replace('/', '--')), 'w') as file:
-            dump(issues_info, file, ensure_ascii=False, indent=3)
+        if (not args.force) and (reponame in checked_repos):
+            print(f"Skipping {reponame} (backup exists)...")
+        else:
+            full_reponame = f"{org_name}/{reponame}"
+            print('get {}'.format(full_reponame))
+            repo = g.get_repo(full_reponame)
+            issues = repo.get_issues(state='all')
+            issues_info = []
+            print('get issues')
+            for issue in issues:
+                issues_info.append(get_issue_info(issue))
+            with open('{}/{}.issues.json'.format(org_name, reponame.replace('/', '--')), 'w') as file:
+                dump(issues_info, file, ensure_ascii=False, indent=3)

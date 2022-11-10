@@ -21,6 +21,11 @@ def parse_args():
     results = parser.parse_args()
     return results
 
+def get_token(filename):
+    with open(filename) as file:
+        token = file.readline().strip()
+    return token
+
 
 def get_orgs(filename):
     with open(filename) as file:
@@ -58,7 +63,7 @@ def get_repo_info(repo, org_name="", username=""):
 
 if __name__ == '__main__':
     args = parse_args()
-    g = Github(args.token)
+    g = Github(get_token(args.token))
     for org_name in get_orgs(args.orgs):
         print('get org [{}]'.format(org_name))
         org = g.get_organization(org_name)

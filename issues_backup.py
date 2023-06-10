@@ -8,16 +8,19 @@ import csv
 from json import dump
 import os.path as path
 import glob
+from time import sleep
 
+
+DELAY=3 # Delay to avoiding reach of Github API limit
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--token', type=str, required=True,
                         dest='token',
-                        help='github token')
+                        help='file with github token')
     parser.add_argument('--repos', type=str, required=True,
                         dest='repos',
-                        help='file w/repos list')
+                        help='csv file w/repos list')
     parser.add_argument('--force', action='store_true', required=False,
                         dest='force',
                         help='force rewrite issues')
@@ -74,14 +77,27 @@ if __name__ == '__main__':
     for reponame in get_repos(args.repos):
         if (not args.force) and (reponame in checked_repos):
             print(f"Skipping {reponame} (backup exists)...")
-        else:
-            full_reponame = f"{org_name}/{reponame}"
-            print('get {}'.format(full_reponame))
-            repo = g.get_repo(full_reponame)
-            issues = repo.get_issues(state='all')
-            issues_info = []
-            print('get issues')
-            for issue in issues:
-                issues_info.append(get_issue_info(issue))
-            with open('{}/{}.issues.json'.format(org_name, reponame.replace('/', '--')), 'w') as file:
-                dump(issues_info, file, ensure_ascii=False, indent=3)
+            continue
+        sleep(DELAY)
+        while True:
+            try:
+                full_reponame = f"{org_name}/{reponame}"
+                print('get {}'.format(full_reponame))
+                repo = g.get_repo(full_reponame)
+                sleep(DELAY)
+                issues = repo.get_issues(state='all')
+                issues_info = []
+                print('get issues')
+                for issue in issues:
+                    sleep(DELAY)
+                    issues_info.append(get_issue_info(issue))
+                with open('{}/{}.issues.json'.format(org_name, reponame.replace('/', '--')), 'w') as file:
+                    dump(issues_info, file, ensure_ascii=False, indent=3)
+
+                break
+            except Exception as e:
+                ## Sleep 1h
+                print("Got exception, will wait for 1h and continue")
+                print(e)
+                sleep(60*61)
+                continue

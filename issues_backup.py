@@ -5,13 +5,13 @@ import os
 from github import Github
 import argparse
 import csv
-from json import dump
+from json import dump, load
 import os.path as path
 import glob
 from time import sleep
+from datetime import datetime
 
-
-DELAY=3 # Delay to avoiding reach of Github API limit
+DELAY=1 # Delay to avoiding reach of Github API limit
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -48,8 +48,7 @@ def get_repos(filename):
         next(reader, None)
         print("REPOS:")
         for row in reader:
-            print(row[:1][0])
-            repos.append(row[:1][0])
+            repos.append((row[:1][0], int(row[2])))
     return repos
 
 
@@ -65,6 +64,10 @@ def get_issue_info(issue):
     }
 
 
+def get_issues_info(repo):
+    return repo.get_issues(state='all')
+
+
 if __name__ == '__main__':
     args = parse_args()
     g = Github(get_token(args.token))
@@ -74,7 +77,17 @@ if __name__ == '__main__':
         os.mkdir(org_name)
     else:
         checked_repos = get_checked_repos(org_name)
-    for reponame in get_repos(args.repos):
+    repos = get_repos(args.repos)
+    i=0
+    for repo_item in repos:
+        reponame = repo_item[0]
+        issues_count = repo_item[1]
+        print(f"Processing {reponame} with {issues_count} issues  {i}/{len(repos)}")
+        i=i+1
+        if issues_count == 0:
+            print(f"Skipping {reponame} (zero issues)...")
+            continue
+
         if (not args.force) and (reponame in checked_repos):
             print(f"Skipping {reponame} (backup exists)...")
             continue
@@ -82,16 +95,28 @@ if __name__ == '__main__':
         while True:
             try:
                 full_reponame = f"{org_name}/{reponame}"
-                print('get {}'.format(full_reponame))
+                print('Recieving data for {}'.format(full_reponame))
                 repo = g.get_repo(full_reponame)
+                file_name = '{}/{}.issues.json'.format(org_name, reponame.replace('/', '--'))
+                if path.exists(file_name):
+                    repo_updated_at = repo.updated_at
+                    file_updated = datetime.fromtimestamp(path.getmtime(file_name))
+                    print(f"Repo {full_reponame} updated at {repo_updated_at}, file updated at {file_updated}")
+                    if repo_updated_at < file_updated:
+                        print(f"Repo {full_reponame} does not have new changes, skipping")
+                        break
+                    else:
+                        print(f"Repo {full_reponame} has new changes, need to backup")
+                else:
+                    print(f"File for repo {full_reponame} does not exist")
                 sleep(DELAY)
-                issues = repo.get_issues(state='all')
+                issues = get_issues_info(repo)
                 issues_info = []
-                print('get issues')
                 for issue in issues:
                     sleep(DELAY)
                     issues_info.append(get_issue_info(issue))
-                with open('{}/{}.issues.json'.format(org_name, reponame.replace('/', '--')), 'w') as file:
+
+                with open(file_name, 'w') as file:
                     dump(issues_info, file, ensure_ascii=False, indent=3)
 
                 break

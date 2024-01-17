@@ -10,6 +10,9 @@ import os.path as path
 import glob
 from time import sleep
 from datetime import datetime
+import pytz
+
+utc=pytz.UTC
 
 DELAY=1 # Delay to avoiding reach of Github API limit
 
@@ -99,8 +102,8 @@ if __name__ == '__main__':
                 repo = g.get_repo(full_reponame)
                 file_name = '{}/{}.issues.json'.format(org_name, reponame.replace('/', '--'))
                 if path.exists(file_name):
-                    repo_updated_at = repo.updated_at
-                    file_updated = datetime.fromtimestamp(path.getmtime(file_name))
+                    repo_updated_at = repo.updated_at.replace(tzinfo=utc)
+                    file_updated = datetime.fromtimestamp(path.getmtime(file_name)).replace(tzinfo=utc)
                     print(f"Repo {full_reponame} updated at {repo_updated_at}, file updated at {file_updated}")
                     if repo_updated_at < file_updated:
                         print(f"Repo {full_reponame} does not have new changes, skipping")

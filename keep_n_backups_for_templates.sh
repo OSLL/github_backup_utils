@@ -37,6 +37,7 @@ clean_old_copies() {
   local folder=$1
   local pattern="${folder}_*"
   local copies=("$BACKUP_DIR"/$pattern)
+  # echo ${copies[@]}   # дебаг вывод чтобы посмотреть на то, как исщутся копии 
 
   if [ ${#copies[@]} -gt $N ]; then
     local num_to_delete=$(( ${#copies[@]} - N ))

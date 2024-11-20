@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 BACKUP_DIR="../backups"
 
@@ -21,6 +22,7 @@ copy_folder() {
   local folder=$1
   local timestamp=$(date +"%Y_%m_%d_%H_%M")
   local new_folder_name="${folder}_${timestamp}"
+  echo "Star copy $folder into $BACKUP_DIR/$new_folder_name"
   cp -r -f "$folder" "$BACKUP_DIR/$new_folder_name"
   echo "Folder $folder copied into $BACKUP_DIR/$new_folder_name"
 }
@@ -42,6 +44,7 @@ clean_old_copies() {
   if [ ${#copies[@]} -gt $N ]; then
     local num_to_delete=$(( ${#copies[@]} - N ))
     for ((i=0; i<num_to_delete; i++)); do
+      echo "Started deleting ${copies[i]}"
       rm -rf "${copies[i]}"
       echo "Deleted old copy ${copies[i]}"
     done

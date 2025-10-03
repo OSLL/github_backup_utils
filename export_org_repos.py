@@ -1,25 +1,34 @@
 #!/bin/python3
-# usage: python3 export_org_repos.py --token <token_file> --github_nickname <your nickname> --orgs <organizations_file>
+# usage: python3 export_org_repos.py --token <token_file> --username <username_file> --orgs <organizations_file>
 import argparse
-from github import Github
-import json
+from github import Github, Auth
+from github.Repository import Repository
 import csv
-import requests
+from json import dump as json_dump
 from time import sleep
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--token', type=str, required=True,
-                        dest='token',
-                        help='file w/github token')
-    parser.add_argument('--github_nickname', type=str, required=True,
-                        dest='github_nickname',
-                        help='organization_names_file')
-    parser.add_argument('--orgs', type=str, required=True,
-                        dest='orgs',
-                        help='organization_names_file')
+    parser.add_argument(
+        "--token", type=str, required=True, dest="token", help="file w/github token"
+    )
+    parser.add_argument(
+        "--username",
+        type=str,
+        required=True,
+        dest="username",
+        help="github username",
+    )
+    parser.add_argument(
+        "--orgs", type=str, required=True, dest="orgs", help="organization_names_file"
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", dest="verbose", help="verbose result"
+    )
     results = parser.parse_args()
     return results
+
 
 def get_token(filename):
     with open(filename) as file:
@@ -33,49 +42,81 @@ def get_orgs(filename):
     return orgs
 
 
-def get_writer_rows():
-    return [
-        "repo_name",
-        "is_private",
-        "issues_count",
-        "permissions"
-    ]
+def get_writer_rows(verbose=False):
+    headers = "repo_name,archived,has_issues,has_wiki,is_private,last_pushed_at,size,pr_count,issues_count,users_count,permissions".split(
+        ","
+    )
+    return headers if verbose else headers[:5]
 
 
-def get_repo_info(repo, org_name="", username=""):
-    users = ""
-    try:
-        for u in repo.get_collaborators():
-    #        params = {
-    #            "accept": "application/vnd.github.v3+json"
-    #        }
-    #        sleep(1)
-    #        res = requests.get(f"https://api.github.com/repos/{org_name}/{repo.name}/collaborators/{u.login}/permission", params=params, auth=(username, args.token))
-            
-            users += f"{u.login}:{str(u.permissions)},"
-    #    print(users)
-    except Exception as exc:
-        print(f"Error getting collaborators: {exc}")
-    return [
-        str(repo.name),
-        str(repo.private),
-        str(len(list(repo.get_issues(state='all')))),
-        str(users)
-    ]
+def get_repo_info(repo: Repository, org_name: str, username: str, verbose=False):
+    info = {
+        "repo_name": repo.name,
+        "is_private": int(repo.private),
+        "archived": int(repo.archived),
+        "has_wiki": int(repo.has_wiki),
+        "has_issues": int(repo.has_issues)
+    }
+    if verbose:
+        users = ""
+        try:
+            users_info = repo.get_collaborators()
+            users_count = users_info.totalCount
+            for u in users_info:
+                users += f"{u.login}:{str(u.permissions)},"
+        except Exception as exc:
+            print(f"Error getting collaborators: {exc}")
+
+        pr_count, issues_count = 0, 0
+        if repo.has_issues:
+            all_issues = list(
+                repo.get_issues(state="all")
+            )  # TODO: use totalCount after release
+            issues_count = sum(not issue.pull_request for issue in all_issues)
+            pr_count = len(all_issues) - issues_count
+
+        info.extend(
+            {
+                "last_pushed_at": repo.pushed_at.strftime(r"%d.%m.%y %H:%M:%S"),
+                "size": repo.size,
+                "pr_count": pr_count,
+                "issues_count": issues_count,
+                "users_count": users_count,
+                "permissions": users,
+            }
+        )
+    return info
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
-    g = Github(get_token(args.token))
+    g = Github(auth=Auth.Token(get_token(args.token)))
+
+    orgs_data = {}
+
     for org_name in get_orgs(args.orgs):
-        print('get org [{}]'.format(org_name))
+        print(f"get org [{org_name}]")
+        orgs_data[org_name] = []
         org = g.get_organization(org_name)
-        org_repos = org.get_repos()
-        with open(f'{org_name}.csv', 'w') as file:
-            writer = csv.writer(file, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(get_writer_rows())
-            for repo in org_repos:
+
+        with open(f"{org_name}.csv", "w", newline="") as file:
+            writer = csv.DictWriter(
+                file,
+                fieldnames=get_writer_rows(args.verbose),
+                delimiter=";",
+                quotechar="|",
+                quoting=csv.QUOTE_MINIMAL,
+            )
+            writer.writeheader()
+
+            repos = org.get_repos()
+            for repo in repos:
                 print(f"Handling repo [{repo.name}]")
-#                sleep(10)
-                info = get_repo_info(repo, org_name, args.github_nickname)
+                info = get_repo_info(repo, org_name, args.username, args.verbose)
+                orgs_data[org_name].append(info)
                 writer.writerow(info)
+                sleep(0.1)
+
+    if args.verbose:
+        with open("orgs_info.json", "w", encoding="utf-8") as file:
+            json_dump(orgs_data, file, ensure_ascii=False, indent=4)

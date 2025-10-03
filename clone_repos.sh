@@ -19,10 +19,13 @@ dir=`pwd`
   exit 99
 }
 i=1
-while read name priv issues perms; do
+while read name archived has_issues has_wiki is_private; do
   if [ "$i" == '1' ]; then
     i=0
     continue # skip column's name
+  fi
+  if [ "$archived" == 'True' ]; then
+    continue # skip archived repo
   fi
   LINK="git@github.com:$ORG/$name.git"
   if [ ! -d "$ORG/$name" ]; then

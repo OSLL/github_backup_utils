@@ -1,5 +1,5 @@
 #!/bin/python3
-# usage: python3 export_org_repos.py --token <token_file> --username <username_file> --orgs <organizations_file>
+# usage: python3 export_org_repos.py --token <token_file> --orgs <organizations_file>
 import argparse
 from github import Github, Auth
 from github.Repository import Repository
@@ -12,13 +12,6 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--token", type=str, required=True, dest="token", help="file w/github token"
-    )
-    parser.add_argument(
-        "--username",
-        type=str,
-        required=True,
-        dest="username",
-        help="github username",
     )
     parser.add_argument(
         "--orgs", type=str, required=True, dest="orgs", help="organization_names_file"
@@ -49,7 +42,7 @@ def get_writer_rows(verbose=False):
     return headers if verbose else headers[:5]
 
 
-def get_repo_info(repo: Repository, org_name: str, username: str, verbose=False):
+def get_repo_info(repo: Repository, verbose=False):
     info = {
         "repo_name": repo.name,
         "is_private": int(repo.private),
@@ -112,7 +105,7 @@ if __name__ == "__main__":
             repos = org.get_repos()
             for repo in repos:
                 print(f"Handling repo [{repo.name}]")
-                info = get_repo_info(repo, org_name, args.username, args.verbose)
+                info = get_repo_info(repo, args.verbose)
                 orgs_data[org_name].append(info)
                 writer.writerow(info)
                 sleep(0.1)

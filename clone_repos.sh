@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # Usage: bash ./clone_repos.sh file.csv CubitCodeReview
-#                              <filename> <org_name> [backup_dir=..]
+#                              <filename> <org_name> <backup_dir> <clone_archived>
+# clone_archived: "1" (clone only archived), "1" (clone only not archived) or "2" (clone all)
 
 INPUT=${1:-"file.csv"}
 ORG=${2:-"org"}
 BACKUP_DIR=${3:-".."}
+ARCHIVE_CLONE=${4:-"0"}
 BACKUP_ORG_DIR=$BACKUP_DIR/$ORG
 OLDIFS=$IFS
 IFS=';'
@@ -27,11 +29,13 @@ while read name archived has_issues has_wiki is_private; do
     i=0
     continue # skip column's name
   fi
-  if [ "$archived" == 'True' ]; then
+  if [ "$archived" == "$ARCHIVE_CLONE" ]; then
+    echo "REPO $name (skip by ARCHIVE_CLONE setting). SKIPPING."
+    echo "__________________________________________"
     continue # skip archived repo
   fi
   LINK="git@github.com:$ORG/$name.git"
-  $BACKUP_REPO_DIR=$BACKUP_ORG_DIR/$name
+  BACKUP_REPO_DIR=$BACKUP_ORG_DIR/$name
   if [ ! -d "$BACKUP_REPO_DIR" ]; then
     git clone $LINK $BACKUP_REPO_DIR
   else

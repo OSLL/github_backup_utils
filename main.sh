@@ -2,11 +2,10 @@
 
 # Requirements
 # ./token - contains github token
-# ./username - contains github username (token owner)
 # ./orgs - orgs list (separated with newline)
 
 echo "Running export_org_repos.py"
-python3 ./export_org_repos.py --token ./token --username `cat ./username` --orgs ./orgs
+python3 ./export_org_repos.py --token ./token --orgs ./orgs
 
 
 echo "Cloning repos"
@@ -22,7 +21,7 @@ while IFS= read -r org; do
   ../wiki_saver/save_wiki.sh ${org}_list.txt
 
   echo "Backing up issues of $org"
-  python3.8 ./issues_backup.py --token token --repos $org.csv --force
+  python3 ./issues_backup.py --token token --repos $org.csv --force
 done <./orgs
 
 read -n 1 -s -r -p "Press any key to continue"

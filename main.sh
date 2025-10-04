@@ -3,17 +3,19 @@
 # Requirements
 # ./token - contains github token
 # ./orgs - orgs list (separated with newline)
+# BACKUP_DIR: optional. default = ".."
 
 echo "Running export_org_repos.py"
 python3 ./export_org_repos.py --token ./token --orgs ./orgs
 
+BACKUP_DIR=${1:-".."}
 
 echo "Cloning repos"
 
 while IFS= read -r org; do
   echo "Processing $org"
   echo "Cloning repos of $org"
-  ./clone_repos.sh $org.csv $org
+  ./clone_repos.sh $org.csv $org $BACKUP_DIR
 
   echo "Cloning wikis of $org"
 

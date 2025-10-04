@@ -1,15 +1,18 @@
 #!/bin/bash
 
 # Usage: bash ./clone_repos.sh file.csv CubitCodeReview
-#                              <filename> <org_name>
+#                              <filename> <org_name> [backup_dir=..]
 
 INPUT=${1:-"file.csv"}
 ORG=${2:-"org"}
+BACKUP_DIR=${3:-".."}
+BACKUP_ORG_DIR=$BACKUP_DIR/$ORG
 OLDIFS=$IFS
 IFS=';'
 
+
 if [ ! -d "$ORG" ]; then
-  mkdir -p $ORG
+  mkdir -p $BACKUP_ORG_DIR
 fi
 
 dir=`pwd`
@@ -28,11 +31,12 @@ while read name archived has_issues has_wiki is_private; do
     continue # skip archived repo
   fi
   LINK="git@github.com:$ORG/$name.git"
-  if [ ! -d "$ORG/$name" ]; then
-    git clone $LINK $ORG/$name
+  $BACKUP_REPO_DIR=$BACKUP_ORG_DIR/$name
+  if [ ! -d "$BACKUP_REPO_DIR" ]; then
+    git clone $LINK $BACKUP_REPO_DIR
   else
-    echo "REPO $name (`pwd`/$ORG/$name)  EXISTS. FETCHING."
-    cd $ORG/$name
+    echo "REPO $name ($BACKUP_REPO_DIR)  EXISTS. FETCHING."
+    cd $BACKUP_REPO_DIR
     git fetch -a
     cd $dir
   fi

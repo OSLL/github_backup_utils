@@ -19,8 +19,8 @@ while IFS= read -r org; do
 
   echo "Cloning wikis of $org"
 
-  ../wiki_saver/csv_to_plain_list.sh $org.csv ${org}_list.txt ${org}
-  ../wiki_saver/save_wiki.sh ${org}_list.txt
+  ./wiki_saver/csv_to_wiki_list.sh $org.csv ${org}_list.txt ${org}
+  ./wiki_saver/save_wiki.sh ${org}_list.txt
 
   echo "Backing up issues of $org"
   python3 ./issues_backup.py --token token --repos $org.csv --force

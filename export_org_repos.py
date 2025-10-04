@@ -5,7 +5,7 @@ from github.Repository import Repository
 import csv
 from json import dump as json_dump
 from time import sleep
-from utils import get_github_client
+from utils import get_github_client, get_lines_from_file
 
 
 def parse_args():
@@ -21,12 +21,6 @@ def parse_args():
     )
     results = parser.parse_args()
     return results
-
-
-def get_orgs(filename):
-    with open(filename) as file:
-        orgs = (org.strip() for org in file.readlines() if org.strip())
-    return orgs
 
 
 def get_writer_rows(verbose=False):
@@ -81,7 +75,7 @@ if __name__ == "__main__":
 
     orgs_data = {}
 
-    for org_name in get_orgs(args.orgs):
+    for org_name in get_lines_from_file(args.orgs):
         print(f"get org [{org_name}]")
         orgs_data[org_name] = []
         org = g.get_organization(org_name)

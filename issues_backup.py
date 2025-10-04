@@ -131,7 +131,7 @@ if __name__ == "__main__":
                         # skip PR, that also in issues
                         issues_info.append(get_issue_info(issue))
                     sleep(DELAY)
-
+                # TODO: check, that issues_info isn't empty
                 with open(file_name, "w") as file:
                     dump(issues_info, file, ensure_ascii=False, indent=3)
 

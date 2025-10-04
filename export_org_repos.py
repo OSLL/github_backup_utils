@@ -1,11 +1,11 @@
 #!/bin/python3
 # usage: python3 export_org_repos.py --token <token_file> --orgs <organizations_file>
 import argparse
-from github import Github, Auth
 from github.Repository import Repository
 import csv
 from json import dump as json_dump
 from time import sleep
+from utils import get_github_client
 
 
 def parse_args():
@@ -21,12 +21,6 @@ def parse_args():
     )
     results = parser.parse_args()
     return results
-
-
-def get_token(filename):
-    with open(filename) as file:
-        token = file.readline().strip()
-    return token
 
 
 def get_orgs(filename):
@@ -48,7 +42,7 @@ def get_repo_info(repo: Repository, verbose=False):
         "is_private": int(repo.private),
         "archived": int(repo.archived),
         "has_wiki": int(repo.has_wiki),
-        "has_issues": int(repo.has_issues)
+        "has_issues": int(repo.has_issues),
     }
     if verbose:
         users = ""
@@ -83,7 +77,7 @@ def get_repo_info(repo: Repository, verbose=False):
 
 if __name__ == "__main__":
     args = parse_args()
-    g = Github(auth=Auth.Token(get_token(args.token)))
+    g = get_github_client(args.token)
 
     orgs_data = {}
 

@@ -2,15 +2,16 @@
 # usage: python3 issues_backup.py --token <token_file> --repos <repos file>
 import os
 
-from github import Auth, Github, Issue
+from github import Issue
 import argparse
 import csv
-from json import dump, load
+from json import dump
 import os.path as path
 import glob
 from time import sleep
 from datetime import datetime
 import pytz
+from utils import get_github_client
 
 utc = pytz.UTC
 
@@ -41,12 +42,6 @@ def get_checked_repos(path):
     for file in glob.glob(glob.escape(path) + "/*.issues.json"):
         res.append(os.path.basename(file).split(".")[0])
     return res
-
-
-def get_token(filename):
-    with open(filename) as file:
-        token = file.readline().strip()
-    return token
 
 
 def get_repos(filename):
@@ -81,7 +76,7 @@ def get_issues_info(repo):
 
 if __name__ == "__main__":
     args = parse_args()
-    g = Github(auth=Auth.Token(get_token(args.token)))
+    g = get_github_client(args.token)
     org_name = args.repos.split(".")[0]
     checked_repos = []
     if not path.exists(org_name):

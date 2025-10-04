@@ -62,7 +62,7 @@ def get_repo_info(repo: Repository, verbose=False):
             issues_count = sum(not issue.pull_request for issue in all_issues)
             pr_count = len(all_issues) - issues_count
 
-        info.extend(
+        info.update(
             {
                 "last_pushed_at": repo.pushed_at.strftime(r"%d.%m.%y %H:%M:%S"),
                 "size": repo.size,

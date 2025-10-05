@@ -2,12 +2,12 @@
 
 # Usage: bash ./clone_repos.sh file.csv CubitCodeReview
 #                              <filename> <org_name> <backup_dir> <clone_archived>
-# clone_archived: "1" (clone only archived), "1" (clone only not archived) or "2" (clone all)
+# clone_archived: "0" (clone only archived), "1" (clone only not archived) or "2" (clone all)
 
 INPUT=${1:-"file.csv"}
 ORG=${2:-"org"}
 BACKUP_DIR=${3:-".."}
-ARCHIVE_CLONE=${4:-"0"}
+ARCHIVE_CLONE=${4:-"1"}
 BACKUP_ORG_DIR=$BACKUP_DIR/$ORG
 OLDIFS=$IFS
 IFS=';'

@@ -24,19 +24,27 @@ def parse_args():
 
 
 def get_writer_rows(verbose=False):
-    headers = "repo_name,archived,has_issues,has_wiki,is_private,last_pushed_at,size,pr_count,issues_count,users_count,permissions".split(
+    headers = "repo_name,archived,issues_count,has_wiki,is_private,last_pushed_at,size,pr_count,users_count,permissions".split(
         ","
     )
     return headers if verbose else headers[:5]
 
 
 def get_repo_info(repo: Repository, verbose=False):
+    pr_count, issues_count = 0, 0
+
+    if repo.has_issues:
+        all_issues = tuple(
+            repo.get_issues(state="all")
+        )  # TODO: use totalCount after release
+        issues_count = sum(not issue.pull_request for issue in all_issues)
+        pr_count = len(all_issues) - issues_count
     info = {
         "repo_name": repo.name,
         "is_private": int(repo.private),
         "archived": int(repo.archived),
         "has_wiki": int(repo.has_wiki),
-        "has_issues": int(repo.has_issues),
+        "issues_count": issues_count,
     }
     if verbose:
         users = ""
@@ -47,21 +55,11 @@ def get_repo_info(repo: Repository, verbose=False):
                 users += f"{u.login}:{str(u.permissions)},"
         except Exception as exc:
             print(f"Error getting collaborators: {exc}")
-
-        pr_count, issues_count = 0, 0
-        if repo.has_issues:
-            all_issues = list(
-                repo.get_issues(state="all")
-            )  # TODO: use totalCount after release
-            issues_count = sum(not issue.pull_request for issue in all_issues)
-            pr_count = len(all_issues) - issues_count
-
         info.update(
             {
                 "last_pushed_at": repo.pushed_at.strftime(r"%d.%m.%y %H:%M:%S"),
                 "size": repo.size,
                 "pr_count": pr_count,
-                "issues_count": issues_count,
                 "users_count": users_count,
                 "permissions": users,
             }

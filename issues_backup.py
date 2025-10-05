@@ -51,7 +51,7 @@ def get_repos(filename):
         print("REPOS:")
         for row in reader:
             repos.append(
-                (row["repo_name"], bool(int(row["archived"])), bool(int(row["has_issues"])))
+                (row["repo_name"], bool(int(row["archived"])), bool(int(row["issues_count"])))
             )
     return repos
 
@@ -86,11 +86,11 @@ if __name__ == "__main__":
     repos = get_repos(args.repos)
 
     for i, repo_item in enumerate(repos, start=1):
-        reponame, is_archived, has_issues = repo_item
+        reponame, is_archived, issues_count = repo_item
         print(
-            f"Processing {i}/{len(repos)}: {reponame}, archived = {is_archived}, has_issues = {has_issues}"
+            f"Processing {i}/{len(repos)}: {reponame}, archived = {is_archived}, issues_count = {issues_count}"
         )
-        if not has_issues:
+        if not issues_count:
             print(f"Skipping {reponame} (zero issues)...")
             continue
         elif is_archived:

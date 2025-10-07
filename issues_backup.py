@@ -51,7 +51,7 @@ def get_repos(filename):
         print("REPOS:")
         for row in reader:
             repos.append(
-                (row["repo_name"], bool(int(row["archived"])), bool(int(row["issues_count"])))
+                (row["repo_name"], bool(int(row["archived"])), int(row["issues_count"]))
             )
     return repos
 
